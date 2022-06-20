@@ -54,7 +54,7 @@
     });
 
     // Create timeline
-    $('#experience-timeline').each(function() {
+    $('#license-timeline').each(function() {
 
         $this = $(this); // Store reference to this
         $userContent = $this.children('div'); // user content

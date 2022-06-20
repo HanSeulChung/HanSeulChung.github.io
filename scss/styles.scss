@@ -96,7 +96,7 @@ body {
 
 // No JS styles
 .no-js {
-    #experience-timeline {
+    #license-timeline {
         > div {
             background: $background;
             padding: 10px;
@@ -465,7 +465,7 @@ footer {
     --------------------------------
 */
 
-#experience {
+#license {
     padding: 50px 15px;
     text-align: center;
     border-bottom: 1px solid $border;
@@ -475,7 +475,7 @@ footer {
     }
 }
 
-#experience-timeline {
+#license-timeline {
     margin: 30px auto 0 auto;
     position: relative;
     max-width: 1000px;
@@ -844,7 +844,7 @@ footer {
 // Collapse timeline
 @media only screen and (max-width: 750px) {
 
-    #experience-timeline {
+    #license-timeline {
         &:before, &:after {
             left: 23px;
         }
