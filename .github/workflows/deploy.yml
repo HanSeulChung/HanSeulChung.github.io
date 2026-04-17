@@ -20,30 +20,41 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - name: Checkout blog repo
+        uses: actions/checkout@v4
+
+      - name: Checkout private problem-solving repo
+        uses: actions/checkout@v4
+        with:
+          repository: HanSeulChung/problem-solving
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          path: external/problem-solving
 
       - name: Set up Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: 22
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
+      - name: Generate algorithms.json
+        run: node scripts/generate-algorithms.mjs
+
       - name: Build
         run: npm run build
 
       - name: Setup Pages
-        uses: actions/configure-pages@v6
+        uses: actions/configure-pages@v5
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@v4

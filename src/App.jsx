@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
+import algorithms from "./data/algorithms.json";
 
 const recentPosts = [];
-const algorithmPosts = [];
 const projectPosts = [];
 
 const sections = [
@@ -33,10 +33,8 @@ function EmptyState() {
   );
 }
 
-function PostList({ items }) {
-  if (!items.length) {
-    return <EmptyState />;
-  }
+function DefaultPostList({ items }) {
+  if (!items.length) return <EmptyState />;
 
   return (
     <div className="divide-y divide-neutral-200 border-t border-neutral-200">
@@ -60,14 +58,50 @@ function PostList({ items }) {
   );
 }
 
+function AlgorithmList({ items }) {
+  if (!items.length) return <EmptyState />;
+
+  return (
+    <div className="divide-y divide-neutral-200 border-t border-neutral-200">
+      {items.map((item) => (
+        <article
+          key={item.uid}
+          className="grid gap-3 py-6 md:grid-cols-[110px_1fr_120px_90px_120px]"
+        >
+          <div className="text-sm text-neutral-400">
+            {item.platform}
+          </div>
+
+          <div className="space-y-1">
+            <h3 className="text-xl font-semibold tracking-tight text-neutral-900">
+              {item.problemId ? `${item.problemId}. ${item.title}` : item.title}
+            </h3>
+            <p className="text-sm text-neutral-500">
+              {item.language}
+            </p>
+          </div>
+
+          <div className="text-sm text-neutral-500">
+            {item.group}
+          </div>
+
+          <div className="text-sm text-neutral-500">
+            {item.performance?.time || "-"}
+          </div>
+
+          <div className="text-sm text-neutral-400">
+            {item.committedAt
+              ? new Date(item.committedAt).toLocaleDateString("ko-KR")
+              : "-"}
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
 export default function BlogHomeMockup() {
   const [activeSection, setActiveSection] = useState("recent");
-
-  const currentPosts = useMemo(() => {
-    if (activeSection === "algorithm") return algorithmPosts;
-    if (activeSection === "projects") return projectPosts;
-    return recentPosts;
-  }, [activeSection]);
 
   const currentTitle = useMemo(() => {
     if (activeSection === "algorithm") return "Algorithm";
@@ -84,7 +118,7 @@ export default function BlogHomeMockup() {
               hanseulchung
             </div>
             <p className="text-sm leading-7 text-neutral-500">
-              HanSeul's 블로그
+              블로그
             </p>
           </div>
         </aside>
@@ -111,7 +145,13 @@ export default function BlogHomeMockup() {
               </h1>
             </div>
 
-            <PostList items={currentPosts} />
+            {activeSection === "algorithm" ? (
+              <AlgorithmList items={algorithms} />
+            ) : activeSection === "projects" ? (
+              <DefaultPostList items={projectPosts} />
+            ) : (
+              <DefaultPostList items={recentPosts} />
+            )}
           </section>
         </main>
       </div>
