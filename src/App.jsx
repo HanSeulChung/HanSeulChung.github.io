@@ -108,41 +108,79 @@ function ReadmeRenderer({ text }) {
   }
 
   return (
-    <div className="prose prose-neutral max-w-none prose-headings:tracking-tight prose-p:leading-7 prose-li:leading-7 prose-table:block prose-table:overflow-x-auto prose-img:rounded-xl">
+    <div className="max-w-none text-neutral-800">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
         components={{
-          code({ inline, className, children, ...props }) {
-            const match = /language-(\w+)/.exec(className || "");
-            const language = match?.[1];
-
-            if (inline) {
-              return (
-                <code className="rounded bg-neutral-100 px-1.5 py-0.5 text-[0.9em]" {...props}>
-                  {children}
-                </code>
-              );
-            }
-
+          h1({ children }) {
             return (
-              <div className="overflow-hidden rounded-2xl border border-neutral-200">
-                <SyntaxHighlighter
-                  language={language || "text"}
-                  style={oneLight}
-                  customStyle={{
-                    margin: 0,
-                    padding: "1rem",
-                    fontSize: "0.875rem",
-                    lineHeight: 1.8,
-                    background: "#fafafa",
-                  }}
-                  wrapLongLines
-                >
-                  {String(children).replace(/\n$/, "")}
-                </SyntaxHighlighter>
-              </div>
+              <h1 className="mt-8 mb-4 text-3xl font-bold tracking-tight text-neutral-900 first:mt-0">
+                {children}
+              </h1>
             );
+          },
+          h2({ children }) {
+            return (
+              <h2 className="mt-8 mb-4 text-2xl font-bold tracking-tight text-neutral-900">
+                {children}
+              </h2>
+            );
+          },
+          h3({ children }) {
+            return (
+              <h3 className="mt-6 mb-3 text-xl font-semibold tracking-tight text-neutral-900">
+                {children}
+              </h3>
+            );
+          },
+          h4({ children }) {
+            return (
+              <h4 className="mt-5 mb-3 text-lg font-semibold text-neutral-900">
+                {children}
+              </h4>
+            );
+          },
+          p({ children }) {
+            return (
+              <p className="mb-4 text-sm leading-8 text-neutral-700">
+                {children}
+              </p>
+            );
+          },
+          strong({ children }) {
+            return (
+              <strong className="font-semibold text-neutral-900">
+                {children}
+              </strong>
+            );
+          },
+          ul({ children }) {
+            return (
+              <ul className="mb-4 list-disc space-y-2 pl-6 text-sm leading-8 text-neutral-700">
+                {children}
+              </ul>
+            );
+          },
+          ol({ children }) {
+            return (
+              <ol className="mb-4 list-decimal space-y-2 pl-6 text-sm leading-8 text-neutral-700">
+                {children}
+              </ol>
+            );
+          },
+          li({ children }) {
+            return <li>{children}</li>;
+          },
+          blockquote({ children }) {
+            return (
+              <blockquote className="mb-4 border-l-4 border-neutral-300 pl-4 text-sm leading-8 text-neutral-600">
+                {children}
+              </blockquote>
+            );
+          },
+          hr() {
+            return <hr className="my-8 border-neutral-200" />;
           },
           a({ href, children }) {
             return (
@@ -161,14 +199,67 @@ function ReadmeRenderer({ text }) {
               <img
                 src={src}
                 alt={alt || ""}
-                className="max-w-full rounded-2xl border border-neutral-200"
+                className="my-4 max-w-full rounded-2xl border border-neutral-200"
               />
             );
           },
           table({ children }) {
             return (
-              <div className="overflow-x-auto">
-                <table>{children}</table>
+              <div className="my-4 overflow-x-auto">
+                <table className="min-w-full border-collapse text-sm">
+                  {children}
+                </table>
+              </div>
+            );
+          },
+          thead({ children }) {
+            return <thead className="bg-neutral-50">{children}</thead>;
+          },
+          th({ children }) {
+            return (
+              <th className="border border-neutral-200 px-3 py-2 text-left font-semibold text-neutral-900">
+                {children}
+              </th>
+            );
+          },
+          td({ children }) {
+            return (
+              <td className="border border-neutral-200 px-3 py-2 align-top text-neutral-700">
+                {children}
+              </td>
+            );
+          },
+          code({ inline, className, children, ...props }) {
+            const match = /language-(\w+)/.exec(className || "");
+            const language = match?.[1];
+
+            if (inline) {
+              return (
+                <code
+                  className="rounded bg-neutral-100 px-1.5 py-0.5 text-[0.9em]"
+                  {...props}
+                >
+                  {children}
+                </code>
+              );
+            }
+
+            return (
+              <div className="my-4 overflow-hidden rounded-2xl border border-neutral-200">
+                <SyntaxHighlighter
+                  language={language || "text"}
+                  style={oneLight}
+                  customStyle={{
+                    margin: 0,
+                    padding: "1rem",
+                    fontSize: "0.875rem",
+                    lineHeight: 1.8,
+                    background: "#fafafa",
+                  }}
+                  wrapLongLines
+                >
+                  {String(children).replace(/\n$/, "")}
+                </SyntaxHighlighter>
               </div>
             );
           },
