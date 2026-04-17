@@ -14,6 +14,10 @@ function formatDate(value) {
   return new Date(value).toLocaleDateString("ko-KR");
 }
 
+function getDisplayDate(item) {
+  return item.submittedAt || item.committedAt || null;
+}
+
 function NavButton({ active, children, onClick }) {
   return (
     <button
@@ -84,7 +88,7 @@ function AlgorithmList({ items, onSelect }) {
 
           <div className="text-sm text-neutral-500">{item.group}</div>
           <div className="text-sm text-neutral-500">{item.performance?.time || "-"}</div>
-          <div className="text-sm text-neutral-400">{formatDate(item.committedAt)}</div>
+          <div className="text-sm text-neutral-400">{formatDate(getDisplayDate(item))}</div>
         </button>
       ))}
     </div>
@@ -296,7 +300,7 @@ function AlgorithmDetailPage({ item, onBack }) {
           <span>{item.language}</span>
           <span>{item.performance?.time || "-"}</span>
           <span>{item.performance?.memory || "-"}</span>
-          <span>{formatDate(item.committedAt)}</span>
+          <span>{formatDate(getDisplayDate(item))}</span>
         </div>
 
         {item.link && (
@@ -447,4 +451,4 @@ export default function BlogHomeMockup() {
       </div>
     </div>
   );
-}
+} 

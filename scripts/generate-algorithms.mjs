@@ -157,6 +157,24 @@ function parsePerformanceFromCommitMessage(message) {
   };
 }
 
+function extractSubmittedAt(readme) {
+  if (!readme) return null;
+
+  const match = readme.match(
+    /제출 일자\s*\n\s*(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일\s*(\d{1,2}):(\d{2}):(\d{2})/
+  );
+
+  if (!match) return null;
+
+  const [, year, month, day, hour, minute, second] = match;
+  const yyyy = year.padStart(4, "0");
+  const mm = month.padStart(2, "0");
+  const dd = day.padStart(2, "0");
+  const hh = hour.padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}T${hh}:${minute}:${second}+09:00`;
+}
+
 function walkProblems() {
   const results = [];
   const languageDirs = listDirs(PRIVATE_REPO_PATH);
@@ -186,6 +204,7 @@ function walkProblems() {
           const memo = safeRead(path.join(problemPath, "memo.md"));
           const commitMeta = getLastCommitMeta(PRIVATE_REPO_PATH, relativeProblemPath);
           const perf = parsePerformanceFromCommitMessage(commitMeta?.subject || "");
+          const submittedAt = extractSubmittedAt(readme);
 
           const uid = `${getPlatformSlug(platform)}-${problemId || title
             .toLowerCase()
@@ -199,6 +218,7 @@ function walkProblems() {
             language,
             problemId,
             title,
+            submittedAt,
             committedAt: commitMeta?.committedAt || null,
             commitHash: commitMeta?.hash || null,
             commitMessage: commitMeta?.subject || null,
@@ -225,8 +245,8 @@ function walkProblems() {
   }
 
   results.sort((a, b) => {
-    const aTime = a.committedAt ? new Date(a.committedAt).getTime() : 0;
-    const bTime = b.committedAt ? new Date(b.committedAt).getTime() : 0;
+    const aTime = new Date(a.submittedAt || a.committedAt || 0).getTime();
+    const bTime = new Date(b.submittedAt || b.committedAt || 0).getTime();
     return bTime - aTime;
   });
 
