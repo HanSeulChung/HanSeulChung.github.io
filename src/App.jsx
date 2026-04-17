@@ -1,5 +1,9 @@
 import React, { useMemo, useState } from "react";
 import algorithms from "./data/algorithms.json";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 const recentPosts = [];
 const projectPosts = [];
@@ -57,57 +61,78 @@ function DefaultPostList({ items }) {
   );
 }
 
-function AlgorithmList({ items, selectedUid, onSelect }) {
+function AlgorithmList({ items, onSelect }) {
   if (!items.length) return <EmptyState text="아직 알고리즘 데이터가 없습니다." />;
 
   return (
     <div className="divide-y divide-neutral-200 border-t border-neutral-200">
-      {items.map((item) => {
-        const selected = item.uid === selectedUid;
+      {items.map((item) => (
+        <button
+          key={item.uid}
+          onClick={() => onSelect(item)}
+          className="grid w-full gap-3 py-6 text-left transition hover:bg-neutral-50 md:grid-cols-[90px_1fr_100px_90px_120px]"
+        >
+          <div className="text-sm text-neutral-400">{item.platform}</div>
 
-        return (
-          <button
-            key={item.uid}
-            onClick={() => onSelect(item)}
-            className={`grid w-full gap-3 py-6 text-left transition md:grid-cols-[90px_1fr_90px_90px_120px] ${
-              selected ? "bg-neutral-50" : "hover:bg-neutral-50"
-            }`}
-          >
-            <div className="text-sm text-neutral-400">{item.platform}</div>
+          <div className="space-y-1">
+            <h3 className="text-xl font-semibold tracking-tight text-neutral-900">
+              {item.problemId ? `${item.problemId}. ${item.title}` : item.title}
+            </h3>
+            <p className="text-sm text-neutral-500">{item.language}</p>
+          </div>
 
-            <div className="space-y-1">
-              <h3 className="text-xl font-semibold tracking-tight text-neutral-900">
-                {item.problemId ? `${item.problemId}. ${item.title}` : item.title}
-              </h3>
-              <p className="text-sm text-neutral-500">{item.language}</p>
-            </div>
-
-            <div className="text-sm text-neutral-500">{item.group}</div>
-            <div className="text-sm text-neutral-500">{item.performance?.time || "-"}</div>
-            <div className="text-sm text-neutral-400">{formatDate(item.committedAt)}</div>
-          </button>
-        );
-      })}
+          <div className="text-sm text-neutral-500">{item.group}</div>
+          <div className="text-sm text-neutral-500">{item.performance?.time || "-"}</div>
+          <div className="text-sm text-neutral-400">{formatDate(item.committedAt)}</div>
+        </button>
+      ))}
     </div>
   );
 }
 
-function AlgorithmDetail({ item }) {
-  if (!item) {
-    return (
-      <div className="rounded-3xl border border-neutral-200 p-6">
-        <p className="text-sm text-neutral-500">문제를 선택하면 상세 정보가 표시됩니다.</p>
-      </div>
-    );
+function MarkdownDescription({ text }) {
+  if (!text) {
+    return <p className="text-sm text-neutral-500">문제 설명이 없습니다.</p>;
   }
 
   return (
-    <div className="space-y-6 rounded-3xl border border-neutral-200 p-6">
-      <div className="space-y-2">
-        <div className="text-sm text-neutral-400">{item.platform}</div>
-        <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">
-          {item.problemId ? `${item.problemId}. ${item.title}` : item.title}
-        </h2>
+    <div className="prose prose-neutral max-w-none prose-headings:tracking-tight prose-p:leading-7 prose-li:leading-7">
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+    </div>
+  );
+}
+
+function SampleBlock({ title, value }) {
+  return (
+    <div className="space-y-2">
+      <div className="text-sm text-neutral-400">{title}</div>
+      <pre className="overflow-x-auto rounded-2xl bg-neutral-100 p-4 text-sm leading-6 text-neutral-800">
+{value || ""}
+      </pre>
+    </div>
+  );
+}
+
+function AlgorithmDetailPage({ item, onBack }) {
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between gap-4 border-b border-neutral-200 pb-5">
+        <button
+          onClick={onBack}
+          className="text-sm text-neutral-500 transition hover:text-neutral-900"
+        >
+          ← 목록으로
+        </button>
+      </div>
+
+      <section className="space-y-4">
+        <div className="space-y-2">
+          <div className="text-sm text-neutral-400">{item.platform}</div>
+          <h1 className="text-3xl font-semibold tracking-tight text-neutral-900 sm:text-4xl">
+            {item.problemId ? `${item.problemId}. ${item.title}` : item.title}
+          </h1>
+        </div>
+
         <div className="flex flex-wrap gap-3 text-sm text-neutral-500">
           <span>{item.group}</span>
           <span>{item.language}</span>
@@ -115,56 +140,74 @@ function AlgorithmDetail({ item }) {
           <span>{item.performance?.memory || "-"}</span>
           <span>{formatDate(item.committedAt)}</span>
         </div>
+
         {item.link && (
           <a
             href={item.link}
             target="_blank"
             rel="noreferrer"
-            className="inline-block pt-1 text-sm text-neutral-900 underline underline-offset-4"
+            className="inline-block text-sm text-neutral-900 underline underline-offset-4"
           >
             문제 링크 보기
           </a>
         )}
-      </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">문제 설명</h2>
+        <div className="rounded-3xl border border-neutral-200 bg-white p-6">
+          <MarkdownDescription text={item.readme || ""} />
+        </div>
+      </section>
 
       {item.samples?.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold tracking-tight text-neutral-900">Samples</h3>
-          {item.samples.map((sample, index) => (
-            <div key={index} className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <div className="text-sm text-neutral-400">Input {index + 1}</div>
-                <pre className="overflow-x-auto rounded-2xl bg-neutral-100 p-4 text-sm leading-6 text-neutral-800">
-{sample.input || ""}
-                </pre>
+        <section className="space-y-4">
+          <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">예제 입출력</h2>
+          <div className="space-y-5">
+            {item.samples.map((sample, index) => (
+              <div key={index} className="grid gap-4 md:grid-cols-2">
+                <SampleBlock title={`Input ${index + 1}`} value={sample.input} />
+                <SampleBlock title={`Output ${index + 1}`} value={sample.output} />
               </div>
-              <div className="space-y-2">
-                <div className="text-sm text-neutral-400">Output {index + 1}</div>
-                <pre className="overflow-x-auto rounded-2xl bg-neutral-100 p-4 text-sm leading-6 text-neutral-800">
-{sample.output || ""}
-                </pre>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </section>
       )}
 
       {item.code?.content && (
-        <div className="space-y-2">
-          <div className="text-sm text-neutral-400">{item.code.filename}</div>
-          <pre className="overflow-x-auto rounded-2xl bg-neutral-950 p-4 text-xs leading-6 text-neutral-100">
-{item.code.content}
-          </pre>
-        </div>
+        <section className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">내 코드</h2>
+            <div className="text-sm text-neutral-400">{item.code.filename}</div>
+          </div>
+
+          <div className="overflow-hidden rounded-3xl border border-neutral-200">
+            <SyntaxHighlighter
+              language={(item.code.language || "").toLowerCase() === "java" ? "java" : "text"}
+              style={oneLight}
+              customStyle={{
+                margin: 0,
+                padding: "1.25rem",
+                fontSize: "0.875rem",
+                lineHeight: 1.8,
+                background: "#fafafa",
+              }}
+              showLineNumbers
+              wrapLongLines
+            >
+              {item.code.content}
+            </SyntaxHighlighter>
+          </div>
+        </section>
       )}
 
       {item.memo && (
-        <div className="space-y-2">
-          <div className="text-sm text-neutral-400">Memo</div>
-          <div className="rounded-2xl bg-neutral-100 p-4 text-sm leading-7 text-neutral-700">
-            {item.memo}
+        <section className="space-y-4">
+          <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Memo</h2>
+          <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-6 text-sm leading-7 text-neutral-700">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.memo}</ReactMarkdown>
           </div>
-        </div>
+        </section>
       )}
     </div>
   );
@@ -179,16 +222,21 @@ export default function BlogHomeMockup() {
     return result;
   }, []);
 
-  const [activeSection, setActiveSection] = useState(
-    sections[0]?.key || "algorithm"
-  );
-  const [selectedAlgorithm, setSelectedAlgorithm] = useState(algorithms[0] || null);
+  const [activeSection, setActiveSection] = useState(sections[0]?.key || "algorithm");
+  const [selectedAlgorithm, setSelectedAlgorithm] = useState(null);
 
   const currentTitle = useMemo(() => {
-    if (activeSection === "algorithm") return "Algorithm";
+    if (activeSection === "algorithm") return selectedAlgorithm ? "Algorithm Detail" : "Algorithm";
     if (activeSection === "projects") return "Projects";
     return "Recent Posts";
-  }, [activeSection]);
+  }, [activeSection, selectedAlgorithm]);
+
+  const handleSelectSection = (sectionKey) => {
+    setActiveSection(sectionKey);
+    if (sectionKey !== "algorithm") {
+      setSelectedAlgorithm(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white text-neutral-900">
@@ -207,7 +255,7 @@ export default function BlogHomeMockup() {
                 <NavButton
                   key={section.key}
                   active={activeSection === section.key}
-                  onClick={() => setActiveSection(section.key)}
+                  onClick={() => handleSelectSection(section.key)}
                 >
                   {section.label}
                 </NavButton>
@@ -223,14 +271,14 @@ export default function BlogHomeMockup() {
             </div>
 
             {activeSection === "algorithm" ? (
-              <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
-                <AlgorithmList
-                  items={algorithms}
-                  selectedUid={selectedAlgorithm?.uid}
-                  onSelect={setSelectedAlgorithm}
+              selectedAlgorithm ? (
+                <AlgorithmDetailPage
+                  item={selectedAlgorithm}
+                  onBack={() => setSelectedAlgorithm(null)}
                 />
-                <AlgorithmDetail item={selectedAlgorithm} />
-              </div>
+              ) : (
+                <AlgorithmList items={algorithms} onSelect={setSelectedAlgorithm} />
+              )
             ) : activeSection === "projects" ? (
               <DefaultPostList items={projectPosts} />
             ) : (

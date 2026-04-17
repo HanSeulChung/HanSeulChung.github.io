@@ -204,6 +204,7 @@ function walkProblems() {
             commitMessage: commitMeta?.subject || null,
             sourcePath: relativeProblemPath,
             link: extractFirstUrl(readme),
+            readme: readme || null,
             performance: {
               time: perf.time,
               memory: perf.memory,
