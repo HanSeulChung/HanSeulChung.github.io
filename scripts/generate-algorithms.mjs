@@ -18,10 +18,18 @@ const CODE_EXTENSIONS = {
   ".kt": "Kotlin",
 };
 
-const IGNORED_FILENAMES = new Set([
-  "README.md",
-  "memo.md",
+const IGNORED_FILENAMES = new Set(["README.md", "memo.md"]);
+const IGNORED_DIR_NAMES = new Set([
+  ".git",
+  ".github",
+  "node_modules",
+  "dist",
+  "build",
+  ".idea",
+  ".vscode",
 ]);
+
+const KNOWN_PLATFORMS = new Set(["백준", "SWEA", "프로그래머스"]);
 
 function safeRead(filePath) {
   try {
@@ -44,7 +52,9 @@ function listDirs(targetPath) {
   return fs
     .readdirSync(targetPath, { withFileTypes: true })
     .filter((d) => d.isDirectory())
-    .map((d) => d.name);
+    .map((d) => d.name)
+    .filter((name) => !name.startsWith("."))
+    .filter((name) => !IGNORED_DIR_NAMES.has(name));
 }
 
 function extractProblemInfo(folderName) {
@@ -135,15 +145,13 @@ function getLastCommitMeta(repoPath, relativePath) {
 
 function parsePerformanceFromCommitMessage(message) {
   if (!message) {
-    return { tierFromCommit: null, time: null, memory: null };
+    return { time: null, memory: null };
   }
 
-  const tierMatch = message.match(/^\[([^\]]+)\]/);
   const timeMatch = message.match(/Time:\s*([^,]+?)(?:,|$)/i);
   const memoryMatch = message.match(/Memory:\s*([^,]+?)(?:\s*-BaekjoonHub|,|$)/i);
 
   return {
-    tierFromCommit: tierMatch ? tierMatch[1].trim() : null,
     time: timeMatch ? timeMatch[1].trim() : null,
     memory: memoryMatch ? memoryMatch[1].trim() : null,
   };
@@ -151,12 +159,11 @@ function parsePerformanceFromCommitMessage(message) {
 
 function walkProblems() {
   const results = [];
-
   const languageDirs = listDirs(PRIVATE_REPO_PATH);
 
   for (const language of languageDirs) {
     const languagePath = path.join(PRIVATE_REPO_PATH, language);
-    const platformDirs = listDirs(languagePath);
+    const platformDirs = listDirs(languagePath).filter((name) => KNOWN_PLATFORMS.has(name));
 
     for (const platform of platformDirs) {
       const platformPath = path.join(languagePath, platform);
@@ -169,6 +176,8 @@ function walkProblems() {
         for (const problemFolder of problemDirs) {
           const problemPath = path.join(groupPath, problemFolder);
           const relativeProblemPath = path.relative(PRIVATE_REPO_PATH, problemPath);
+
+          if (!safeStat(problemPath)?.isDirectory()) continue;
 
           const { problemId, title } = extractProblemInfo(problemFolder);
           const codeFile = findCodeFile(problemPath);
